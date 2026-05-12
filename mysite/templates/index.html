@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>LawFirm Dictate Pro | Speech-to-Text Meeting System</title>
+  <!-- Bootstrap 5 + Icons + Fonts -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      background: #f0f4f9;
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+    .card-custom {
+      border: none;
+      border-radius: 28px;
+      background: white;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.02);
+      transition: all 0.2s ease;
+    }
+    .page-container {
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+    .page-header {
+      background: white;
+      border-radius: 28px;
+      padding: 1rem 1.8rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      border: 1px solid #eef2f6;
+    }
+    .meeting-title-badge {
+      background: #eef2ff;
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      font-weight: 600;
+      color: #1e3a8a;
+    }
+    .participant-badge {
+      background: #f1f5f9;
+      border-radius: 60px;
+      padding: 0.5rem 1.2rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      position: relative;
+    }
+    .participant-badge:hover {
+      background: #e6edf5;
+      transform: translateY(-1px);
+      border-color: #cbd5e1;
+    }
+    .participant-badge.active-speaker {
+      background: #1e3a8a;
+      color: white;
+      border-color: #1e3a8a;
+      box-shadow: 0 6px 12px -8px rgba(30,58,138,0.4);
+    }
+    .participant-item-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: #f1f5f9;
+      border-radius: 60px;
+      padding: 0.2rem 0.2rem 0.2rem 1rem;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s;
+    }
+    .participant-item-wrapper:hover {
+      background: #e9eef3;
+    }
+    .participant-name-display {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    .btn-participant-action {
+      border-radius: 40px;
+      padding: 0.2rem 0.7rem;
+      font-size: 0.75rem;
+      margin-left: 0.2rem;
+      background: transparent;
+      border: none;
+      transition: all 0.1s;
+      cursor: pointer;
+    }
+    .btn-participant-action:hover {
+      transform: scale(1.05);
+    }
+    .btn-delete-participant {
+      color: #dc2626;
+    }
+    .btn-delete-participant:hover {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .btn-edit-participant {
+      color: #3b82f6;
+    }
+    .btn-edit-participant:hover {
+      background: #dbeafe;
+    }
+    .chat-message {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 0.85rem;
+      border-left: 4px solid #3b82f6;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      transition: 0.1s;
+      word-break: break-word;
+    }
+    .chat-message .speaker-name {
+      font-weight: 700;
+      color: #0f172a;
+      display: inline-block;
+      margin-right: 0.75rem;
+    }
+    .chat-message .timestamp {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+    .chat-message .message-text {
+      margin-top: 0.4rem;
+      color: #1e293b;
+      line-height: 1.45;
+    }
+    .conversation-box {
+      max-height: 460px;
+      overflow-y: auto;
+      background: #fafcff;
+      border-radius: 24px;
+      padding: 1rem;
+    }
+    .add-participant-row {
+      background: #f8fafc;
+      border-radius: 80px;
+      padding: 0.4rem;
+    }
+    .warning-duplicate {
+      animation: shake 0.3s ease-in-out;
+      background-color: #fff5f5;
+      border-color: #fecaca;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    @media (max-width: 768px) {
+      body { padding: 0.8rem; }
+      .participant-badge { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
+      .participant-item-wrapper { padding: 0.15rem 0.15rem 0.15rem 0.8rem; }
+      .btn-participant-action { padding: 0.15rem 0.5rem; }
+    }
+    .conversation-box::-webkit-scrollbar {
+      width: 5px;
+    }
+    .conversation-box::-webkit-scrollbar-track {
+      background: #eef2f6;
+      border-radius: 10px;
+    }
+    .conversation-box::-webkit-scrollbar-thumb {
+      background: #b9c3d0;
+      border-radius: 10px;
+    }
+    .toast-custom {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1100;
+      background: #1f2937;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 60px;
+      font-size: 0.85rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      animation: slideIn 0.2s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-container">
+  <div class="page-header d-flex flex-wrap justify-content-between align-items-center">
+    <div class="d-flex gap-3 align-items-center flex-wrap">
+      <h3 class="mb-0 fw-semibold" style="color:#0c4e6e;"><i class="fas fa-gavel me-2"></i>Law firm</h3>
+      <span class="meeting-title-badge"><i class="fas fa-balance-scale me-1"></i> Law Firm AI Suite</span>
+    </div>
+    <div class="mt-2 mt-sm-0">
+      <small class="text-muted"><i class="fas fa-microphone-alt"></i> Speech to text meeting | Edit/Delete participants</small>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- LEFT PANEL: Meeting Setup with Edit/Delete -->
+    <div class="col-lg-5 col-xl-4">
+      <div class="card-custom p-4 h-100">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="fas fa-sliders-h fs-4" style="color:#2563eb;"></i>
+          <h5 class="fw-semibold mb-0">Meeting Setup</h5>
+        </div>
+        <hr>
+        <!-- Meeting Name Input -->
+        <label class="form-label fw-semibold mt-2"><i class="fas fa-tag me-1"></i>Meeting Title</label>
+        <div class="input-group mb-3">
+          <input type="text" id="meetingNameInput" class="form-control" placeholder="enter meeting title" value="">
+          <button id="createMeetingBtn" class="btn btn-primary" style="background:#1e4a76; border-radius:0 12px 12px 0;"><i class="fas fa-check-circle me-1"></i>Create</button>
+        </div>
+        <small class="text-secondary d-block mb-3"><i class="far fa-lightbulb"></i> Click "Create" to finalize meeting & sync participants.</small>
+
+        <!-- Participants management with duplicate prevention -->
+        <label class="form-label fw-semibold mt-2"><i class="fas fa-users me-1"></i>Add Participant</label>
+        <div class="d-flex gap-2 add-participant-row mb-3 align-items-center p-2">
+          <input type="text" id="newParticipantName" class="form-control" placeholder="e.g., Attorney Miller" style="border-radius: 40px;">
+          <button id="addPersonBtn" class="btn btn-outline-primary rounded-pill px-4"><i class="fas fa-plus-circle me-1"></i>Add</button>
+        </div>
+
+        <!-- Participant Roster with Delete & Edit functionality -->
+        <div class="mb-3">
+          <span class="fw-semibold"><i class="fas fa-address-card"></i> Participant Roster</span>
+          <div id="participantsListPreview" class="mt-2 d-flex flex-wrap gap-2">
+            <!-- dynamic roster with edit/delete buttons -->
+          </div>
+          <small class="text-muted mt-2 d-block"><i class="fas fa-info-circle"></i> Click ✏️ to edit name | 🗑️ to remove (confirmation required)</small>
+        </div>
+        <div class="alert alert-success py-2 small" role="alert">
+          <i class="fas fa-shield-alt"></i> <strong>Duplicate protection:</strong> Same name can't be added twice (case-insensitive). Edit anytime.
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Meeting Room -->
+    <div class="col-lg-7 col-xl-8">
+      <div class="card-custom p-4 h-100 d-flex flex-column">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 border-bottom pb-2">
+          <div>
+            <i class="fas fa-comments me-2 fs-5" style="color:#0f5b7a;"></i>
+            <span class="fw-semibold fs-5">Live Meeting Transcript</span>
+          </div>
+          <div id="displayMeetingTitle" class="badge bg-light text-dark p-2 px-3 fs-6 fw-normal"><i class="far fa-file-alt"></i> No meeting created</div>
+        </div>
+        
+        <div id="conversationBox" class="conversation-box mb-4" style="flex: 1; min-height: 360px;">
+          <div class="text-muted text-center py-5" id="emptyConvMsg">
+            <i class="fas fa-microphone-slash fs-3"></i><br>No conversation yet.<br> Add participants → Create Meeting → Select speaker → Dictate.
+          </div>
+        </div>
+
+        <div class="mt-2">
+          <label class="fw-semibold small text-secondary mb-2"><i class="fas fa-user-astronaut"></i> Active speakers (click to select before speaking)</label>
+          <div id="speakerButtonsContainer" class="d-flex flex-wrap gap-2 mb-3">
+            <div class="text-muted fst-italic small">No participants yet → add participants on left & click 'Create Meeting'</div>
+          </div>
+        </div>
+
+        <div class="mt-2 bg-light p-3 rounded-4">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+              <i class="fas fa-microphone-alt fs-5 text-danger"></i>
+              <span class="fw-medium">Speech-to-Text:</span>
+              <div id="recordingStatus" class="badge bg-secondary">⚪ Inactive</div>
+              <button id="startDictationBtn" class="btn btn-sm btn-success rounded-pill px-4" disabled><i class="fas fa-play"></i> Start</button>
+              <button id="stopDictationBtn" class="btn btn-sm btn-outline-danger rounded-pill px-4" disabled><i class="fas fa-stop"></i> Stop</button>
+            </div>
+            <small class="text-muted"><i class="fas fa-info-circle"></i> Click speaker badge, then record.</small>
+          </div>
+          <div id="interimNote" class="small text-info mt-2 fst-italic"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- STATE ----------
+  let participants = [];        // { id, name }
+  let currentSpeakerId = null;
+  let currentMeetingTitle = "";
+
+  // DOM elements
+  const meetingNameInput = document.getElementById('meetingNameInput');
+  const createMeetingBtn = document.getElementById('createMeetingBtn');
+  const addPersonBtn = document.getElementById('addPersonBtn');
+  const newParticipantNameInput = document.getElementById('newParticipantName');
+  const participantsListPreviewDiv = document.getElementById('participantsListPreview');
+  const speakerButtonsContainer = document.getElementById('speakerButtonsContainer');
+  const conversationBox = document.getElementById('conversationBox');
+  const displayMeetingTitleSpan = document.getElementById('displayMeetingTitle');
+  const startDictationBtn = document.getElementById('startDictationBtn');
+  const stopDictationBtn = document.getElementById('stopDictationBtn');
+  const recordingStatusSpan = document.getElementById('recordingStatus');
+  const interimNoteSpan = document.getElementById('interimNote');
+
+  // Speech recognition
+  let recognition = null;
+  let isRecording = false;
+
+  // Helper: show toast message
+  function showMessage(msg, isError = false) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-custom';
+    toast.style.background = isError ? '#b91c1c' : '#065f46';
+    toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'} me-2"></i>${msg}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+  }
+
+  function getCurrentTimestamp() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute:'2-digit', second:'2-digit' });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  // Append message
+  function appendMessage(speakerName, messageText) {
+    const emptyMsgDiv = document.getElementById('emptyConvMsg');
+    if (emptyMsgDiv) emptyMsgDiv.remove();
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'chat-message';
+    msgDiv.innerHTML = `
+      <div>
+        <span class="speaker-name"><i class="fas fa-user-circle me-1"></i>${escapeHtml(speakerName)}</span>
+        <span class="timestamp ms-2">${getCurrentTimestamp()}</span>
+      </div>
+      <div class="message-text">${escapeHtml(messageText)}</div>
+    `;
+    conversationBox.appendChild(msgDiv);
+    conversationBox.scrollTop = conversationBox.scrollHeight;
+  }
+
+  // check duplicate (case-insensitive, trimmed)
+  function isDuplicateName(name, excludeId = null) {
+    const trimmed = name.trim().toLowerCase();
+    return participants.some(p => p.name.trim().toLowerCase() === trimmed && (excludeId === null || p.id !== excludeId));
+  }
+
+  // Add participant with duplicate protection
+  function addParticipant() {
+    let rawName = newParticipantNameInput.value.trim();
+    if (rawName === "") {
+      showMessage("Please enter a person name.", true);
+      return false;
+    }
+    if (isDuplicateName(rawName)) {
+      showMessage(`❌ "${rawName}" already exists! No duplicates allowed.`, true);
+      newParticipantNameInput.classList.add('warning-duplicate');
+      setTimeout(() => newParticipantNameInput.classList.remove('warning-duplicate'), 400);
+      return false;
+    }
+    const newId = Date.now() + Math.random() * 1000;
+    participants.push({ id: newId, name: rawName });
+    newParticipantNameInput.value = "";
+    renderAllParticipantsUI();
+    if (currentSpeakerId === null && participants.length > 0) {
+      currentSpeakerId = participants[0].id;
+      renderAllParticipantsUI();
+    }
+    showMessage(`✓ "${rawName}" added to participants.`);
+    if (participants.length > 0) startDictationBtn.disabled = false;
+    return true;
+  }
+
+  // Edit participant name (inline prompt with duplicate check)
+  function editParticipant(id) {
+    const participant = participants.find(p => p.id === id);
+    if (!participant) return;
+    let newName = prompt("✏️ Edit participant name:", participant.name);
+    if (!newName || newName.trim() === "") return;
+    newName = newName.trim();
+    if (isDuplicateName(newName, id)) {
+      showMessage(`❌ "${newName}" already exists. Please use unique name.`, true);
+      return;
+    }
+    const oldName = participant.name;
+    participant.name = newName;
+    // If current speaker was this participant, keep speaker ID same (name changed but ID same)
+    renderAllParticipantsUI();
+    showMessage(`✏️ Renamed "${oldName}" → "${newName}"`);
+  }
+
+  // Delete participant with confirmation prompt
+  function deleteParticipant(id) {
+    const participant = participants.find(p => p.id === id);
+    if (!participant) return;
+    
+    // Show confirmation dialog as requested
+    const confirmDelete = confirm(`⚠️ Remove "${participant.name}" from meeting?\n\nThis action cannot be undone. All future speeches will not include this person.`);
+    
+    if (confirmDelete) {
+      const index = participants.findIndex(p => p.id === id);
+      participants.splice(index, 1);
+      
+      // If deleted participant was current speaker, reset speaker to first available or null
+      if (currentSpeakerId === id) {
+        currentSpeakerId = participants.length > 0 ? participants[0].id : null;
+      }
+      
+      renderAllParticipantsUI();
+      showMessage(`🗑️ Removed "${participant.name}" from participants.`);
+      
+      if (participants.length === 0) {
+        startDictationBtn.disabled = true;
+        currentSpeakerId = null;
+        interimNoteSpan.innerHTML = "No participants left. Add someone to continue.";
+      } else {
+        startDictationBtn.disabled = false;
+        if (currentSpeakerId === null && participants.length > 0) {
+          currentSpeakerId = participants[0].id;
+          renderAllParticipantsUI();
+        }
+      }
+    } else {
+      showMessage(`Cancelled deletion of "${participant.name}".`);
+    }
+  }
+
+  // Renders both left roster (with edit/delete) and speaker buttons (right panel)
+  function renderAllParticipantsUI() {
+    // Left Roster (with management) - Using event delegation for dynamic elements
+    participantsListPreviewDiv.innerHTML = '';
+    if (participants.length === 0) {
+      participantsListPreviewDiv.innerHTML = '<span class="text-muted small">No participants yet. Add a person using the field above.</span>';
+    } else {
+      participants.forEach(p => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'participant-item-wrapper';
+        wrapper.setAttribute('data-participant-id', p.id);
+        wrapper.innerHTML = `
+          <span class="participant-name-display"><i class="fas fa-user me-1"></i>${escapeHtml(p.name)}</span>
+          <button class="btn-participant-action btn-edit-participant" data-id="${p.id}" title="Edit name"><i class="fas fa-pen"></i></button>
+          <button class="btn-participant-action btn-delete-participant" data-id="${p.id}" title="Delete participant"><i class="fas fa-trash-alt"></i></button>
+        `;
+        participantsListPreviewDiv.appendChild(wrapper);
+      });
+      
+      // Attach event listeners to dynamically created buttons
+      document.querySelectorAll('.btn-edit-participant').forEach(btn => {
+        btn.removeEventListener('click', handleEditClick);
+        btn.addEventListener('click', handleEditClick);
+      });
+      
+      document.querySelectorAll('.btn-delete-participant').forEach(btn => {
+        btn.removeEventListener('click', handleDeleteClick);
+        btn.addEventListener('click', handleDeleteClick);
+      });
+    }
+
+    // Right panel speaker buttons
+    speakerButtonsContainer.innerHTML = '';
+    if (participants.length === 0) {
+      speakerButtonsContainer.innerHTML = '<div class="text-muted fst-italic small">No participants → add person & click "Create Meeting"</div>';
+      return;
+    }
+    
+    participants.forEach(p => {
+      const speakerBtn = document.createElement('button');
+      speakerBtn.type = 'button';
+      speakerBtn.className = `participant-badge d-inline-flex align-items-center gap-1 ${currentSpeakerId === p.id ? 'active-speaker' : ''}`;
+      speakerBtn.innerHTML = `<i class="fas fa-microphone-alt me-1"></i> ${escapeHtml(p.name)}`;
+      speakerBtn.addEventListener('click', () => {
+        currentSpeakerId = p.id;
+        renderAllParticipantsUI();
+        interimNoteSpan.innerHTML = `🎤 Selected speaker: <strong>${escapeHtml(p.name)}</strong>. Ready to record.`;
+        setTimeout(() => {
+          if (interimNoteSpan.innerHTML.includes('Selected speaker')) {
+            // optional
+          }
+        }, 2000);
+      });
+      speakerButtonsContainer.appendChild(speakerBtn);
+    });
+    
+    if (currentSpeakerId === null && participants.length > 0) {
+      currentSpeakerId = participants[0].id;
+      renderAllParticipantsUI();
+    }
+  }
+  
+  // Event handler functions for edit/delete
+  function handleEditClick(e) {
+    e.stopPropagation();
+    const id = parseFloat(this.getAttribute('data-id'));
+    editParticipant(id);
+  }
+  
+  function handleDeleteClick(e) {
+    e.stopPropagation();
+    const id = parseFloat(this.getAttribute('data-id'));
+    deleteParticipant(id);
+  }
+
+  // Create Meeting: carry meeting name and participants to transcript area
+  function applyMeetingCreation() {
+    let newTitle = meetingNameInput.value.trim();
+    if (newTitle === "") newTitle = "Untitled Law Meeting";
+    currentMeetingTitle = newTitle;
+    displayMeetingTitleSpan.innerHTML = `<i class="far fa-calendar-check me-1"></i> ${escapeHtml(currentMeetingTitle)}`;
+    renderAllParticipantsUI();
+    
+    // Sync welcome message if conversation empty
+    if (conversationBox.children.length === 0 || document.getElementById('emptyConvMsg')) {
+      const emptyDiv = document.getElementById('emptyConvMsg');
+      if (emptyDiv) emptyDiv.remove();
+      const welcomeMsg = document.createElement('div');
+      welcomeMsg.className = 'chat-message bg-light-subtle';
+      const partList = participants.map(p=>p.name).join(', ');
+      welcomeMsg.innerHTML = `<div><span class="speaker-name"><i class="fas fa-info-circle"></i> System</span><span class="timestamp">${getCurrentTimestamp()}</span></div><div class="message-text">Meeting "${escapeHtml(currentMeetingTitle)}" initiated. Participants: ${partList || 'none yet'}. Select speaker & dictate.</div>`;
+      conversationBox.appendChild(welcomeMsg);
+      conversationBox.scrollTop = conversationBox.scrollHeight;
+    }
+    showMessage(`Meeting "${currentMeetingTitle}" ready with ${participants.length} participant(s).`);
+  }
+
+  // Speech recognition init
+  function initSpeechRecognition() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      startDictationBtn.disabled = true;
+      recordingStatusSpan.innerText = "❌ Not Supported";
+      interimNoteSpan.innerText = "Browser doesn't support Web Speech API. Use Chrome/Edge.";
+      return false;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'my-MM';
+
+    recognition.onstart = () => {
+      isRecording = true;
+      recordingStatusSpan.innerHTML = '🔴 Recording...';
+      recordingStatusSpan.className = 'badge bg-danger';
+      startDictationBtn.disabled = true;
+      stopDictationBtn.disabled = false;
+      interimNoteSpan.innerHTML = '🎙️ Listening... speak clearly.';
+    };
+    recognition.onend = () => {
+      isRecording = false;
+      recordingStatusSpan.innerHTML = '⚪ Inactive';
+      recordingStatusSpan.className = 'badge bg-secondary';
+      startDictationBtn.disabled = false;
+      stopDictationBtn.disabled = true;
+    };
+    recognition.onresult = (event) => {
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (finalTranscript) {
+        if (currentSpeakerId !== null) {
+          const speakerObj = participants.find(p => p.id === currentSpeakerId);
+          if (speakerObj) {
+            appendMessage(speakerObj.name, finalTranscript.trim());
+            interimNoteSpan.innerHTML = `🗣️ Added from ${speakerObj.name}: "${finalTranscript.trim()}"`;
+          } else {
+            interimNoteSpan.innerHTML = `⚠️ Speaker not found, but text captured.`;
+          }
+        } else {
+          interimNoteSpan.innerHTML = `⚠️ No speaker selected. Click participant badge then record. Text: "${finalTranscript}"`;
+        }
+      }
+    };
+    recognition.onerror = (event) => {
+      interimNoteSpan.innerHTML = `❌ Error: ${event.error}`;
+      if (event.error === 'not-allowed') {
+        showMessage("Microphone access denied. Please allow microphone permissions.", true);
+      }
+      recognition.stop();
+    };
+    return true;
+  }
+
+  function startRecording() {
+    if (!recognition) {
+      if (!initSpeechRecognition()) return;
+    }
+    if (isRecording) recognition.stop();
+    if (currentSpeakerId === null && participants.length > 0) {
+      currentSpeakerId = participants[0].id;
+      renderAllParticipantsUI();
+      interimNoteSpan.innerHTML = `👉 Auto-selected "${participants[0].name}". You can change.`;
+    }
+    if (currentSpeakerId === null) {
+      showMessage("Please add participants and select a speaker before dictation.", true);
+      return;
+    }
+    try {
+      recognition.start();
+    } catch(e) {
+      interimNoteSpan.innerHTML = "Restarting recognition...";
+      initSpeechRecognition();
+      setTimeout(() => { if(recognition) recognition.start(); }, 3000000); // 5 minutes delay to prevent rapid retries
+    }
+  }
+
+  function stopRecording() {
+    if (recognition && isRecording) recognition.stop();
+  }
+
+  // default participants: Aung, Hla, Ma (no duplicates)
+  function setDefaultParticipants() {
+    const defaultNames = [];
+    defaultNames.forEach(name => {
+      if (!isDuplicateName(name)) {
+        participants.push({ id: Date.now() + Math.random() * 10000 + name, name: name });
+      }
+    });
+    if (participants.length > 0) currentSpeakerId = participants[0].id;
+    renderAllParticipantsUI();
+  }
+
+  // attach event listeners
+  addPersonBtn.addEventListener('click', addParticipant);
+  createMeetingBtn.addEventListener('click', applyMeetingCreation);
+  startDictationBtn.addEventListener('click', startRecording);
+  stopDictationBtn.addEventListener('click', stopRecording);
+  newParticipantNameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addParticipant(); });
+
+  // initialization
+  setDefaultParticipants();
+  initSpeechRecognition();
+  meetingNameInput.value = "";
+  currentMeetingTitle = meetingNameInput.value;
+  displayMeetingTitleSpan.innerHTML = `<i class="far fa-calendar-check me-1"></i> ${escapeHtml(currentMeetingTitle)}`;
+  if (participants.length > 0) startDictationBtn.disabled = false;
+</script>
+</body>
+</html>

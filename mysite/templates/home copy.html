@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>LawFirm Dictate Pro | Speech-to-Text Meeting System</title>
+  <!-- Bootstrap 5 + Icons + Fonts -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      background: #f0f4f9;
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+    .card-custom {
+      border: none;
+      border-radius: 28px;
+      background: white;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.02);
+      transition: all 0.2s ease;
+    }
+    .page-container {
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+    .page-header {
+      background: white;
+      border-radius: 28px;
+      padding: 1rem 1.8rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      border: 1px solid #eef2f6;
+    }
+    .meeting-title-badge {
+      background: #eef2ff;
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      font-weight: 600;
+      color: #1e3a8a;
+    }
+    .participant-badge {
+      background: #f1f5f9;
+      border-radius: 60px;
+      padding: 0.5rem 1.2rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      position: relative;
+    }
+    .participant-badge:hover {
+      background: #e6edf5;
+      transform: translateY(-1px);
+      border-color: #cbd5e1;
+    }
+    .participant-badge.active-speaker {
+      background: #1e3a8a;
+      color: white;
+      border-color: #1e3a8a;
+      box-shadow: 0 6px 12px -8px rgba(30,58,138,0.4);
+    }
+    .participant-item-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: #f1f5f9;
+      border-radius: 60px;
+      padding: 0.2rem 0.2rem 0.2rem 1rem;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s;
+    }
+    .participant-item-wrapper:hover {
+      background: #e9eef3;
+    }
+    .participant-name-display {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    .btn-participant-action {
+      border-radius: 40px;
+      padding: 0.2rem 0.7rem;
+      font-size: 0.75rem;
+      margin-left: 0.2rem;
+      background: transparent;
+      border: none;
+      transition: all 0.1s;
+      cursor: pointer;
+    }
+    .btn-participant-action:hover {
+      transform: scale(1.05);
+    }
+    .btn-delete-participant {
+      color: #dc2626;
+    }
+    .btn-delete-participant:hover {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .btn-edit-participant {
+      color: #3b82f6;
+    }
+    .btn-edit-participant:hover {
+      background: #dbeafe;
+    }
+    .chat-message {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 0.85rem;
+      border-left: 4px solid #3b82f6;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      transition: 0.1s;
+      word-break: break-word;
+    }
+    .chat-message .speaker-name {
+      font-weight: 700;
+      color: #0f172a;
+      display: inline-block;
+      margin-right: 0.75rem;
+    }
+    .chat-message .timestamp {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+    .chat-message .message-text {
+      margin-top: 0.4rem;
+      color: #1e293b;
+      line-height: 1.45;
+    }
+    .conversation-box {
+      max-height: 460px;
+      overflow-y: auto;
+      background: #fafcff;
+      border-radius: 24px;
+      padding: 1rem;
+    }
+    .add-participant-row {
+      background: #f8fafc;
+      border-radius: 80px;
+      padding: 0.4rem;
+    }
+    .warning-duplicate {
+      animation: shake 0.3s ease-in-out;
+      background-color: #fff5f5;
+      border-color: #fecaca;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    @media (max-width: 768px) {
+      body { padding: 0.8rem; }
+      .participant-badge { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
+      .participant-item-wrapper { padding: 0.15rem 0.15rem 0.15rem 0.8rem; }
+      .btn-participant-action { padding: 0.15rem 0.5rem; }
+    }
+    .conversation-box::-webkit-scrollbar {
+      width: 5px;
+    }
+    .conversation-box::-webkit-scrollbar-track {
+      background: #eef2f6;
+      border-radius: 10px;
+    }
+    .conversation-box::-webkit-scrollbar-thumb {
+      background: #b9c3d0;
+      border-radius: 10px;
+    }
+    .toast-custom {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1100;
+      background: #1f2937;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 60px;
+      font-size: 0.85rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      animation: slideIn 0.2s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-container">
+  <div class="page-header d-flex flex-wrap justify-content-between align-items-center">
+    <div class="d-flex gap-3 align-items-center flex-wrap">
+      <h3 class="mb-0 fw-semibold" style="color:#0c4e6e;"><i class="fas fa-gavel me-2"></i>Law firm</h3>
+      <span class="meeting-title-badge"><i class="fas fa-balance-scale me-1"></i> Law Firm AI Suite</span>
+    </div>
+    <div class="mt-2 mt-sm-0">
+      <small class="text-muted"><i class="fas fa-microphone-alt"></i> Speech to text meeting | Edit/Delete participants</small>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- LEFT PANEL: Meeting Setup with Edit/Delete -->
+    <div class="col-lg-5 col-xl-4">
+      <div class="card-custom p-4 h-100">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="fas fa-sliders-h fs-4" style="color:#2563eb;"></i>
+          <h5 class="fw-semibold mb-0">Meeting Setup</h5>
+        </div>
+        <hr>
+        <!-- Meeting Name Input -->
+        <label class="form-label fw-semibold mt-2"><i class="fas fa-tag me-1"></i>Meeting Title</label>
+        <div class="input-group mb-3">
+          <input type="text" id="meetingNameInput" class="form-control" placeholder="enter meeting title" value="">
+        </div>
+        
+        <!-- Meeting Name Input -->
+        <label class="form-label fw-semibold mt-2"><i class="fas fa-stamp me-1"></i>Meeting Description</label>
+        <div class="input-group mb-3">
+          <textarea id="meetingDescriptionInput" class="form-control" placeholder="enter meeting description" value=""></textarea>
+        </div>
+
+        <div class="input-group mb-3">
+          <button id="createMeetingBtn" class="btn btn-primary" style="background:#1e4a76; border-radius: 12px 12px 12px 12px; text-align: center;">Create Meeting</button>
+        </div>
+        
+
+        <!-- Participants management with duplicate prevention -->
+        <label class="form-label fw-semibold mt-2"><i class="fas fa-users me-1"></i>Add Participant</label>
+        <div class="d-flex gap-2 add-participant-row mb-3 align-items-center p-2">
+          <input type="text" id="newParticipantName" class="form-control" placeholder="e.g., Attorney Miller" style="border-radius: 40px;">
+          <button id="addPersonBtn" class="btn btn-outline-primary rounded-pill px-4"><i class="fas fa-plus-circle me-1"></i>Add</button>
+        </div>
+
+        <!-- Participant Roster with Delete & Edit functionality -->
+        <div class="mb-3">
+          <span class="fw-semibold"><i class="fas fa-address-card"></i> Participant Roster</span>
+          <div id="participantsListPreview" class="mt-2 d-flex flex-wrap gap-2">
+            <!-- dynamic roster with edit/delete buttons -->
+          </div>
+          <small class="text-muted mt-2 d-block"><i class="fas fa-info-circle"></i> Click ✏️ to edit name | 🗑️ to remove (confirmation required)</small>
+        </div>
+        <div class="alert alert-success py-2 small" role="alert">
+          <i class="fas fa-shield-alt"></i> <strong>Duplicate protection:</strong> Same name can't be added twice (case-insensitive). Edit anytime.
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Meeting Room -->
+    <div class="col-lg-7 col-xl-8">
+      <div class="card-custom p-4 h-100 d-flex flex-column">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 border-bottom pb-2">
+          <div>
+            <i class="fas fa-comments me-2 fs-5" style="color:#0f5b7a;"></i>
+            <span class="fw-semibold fs-5">Live Meeting Transcript</span>
+          </div>
+          <div id="displayMeetingTitle" class="badge bg-light text-dark p-2 px-3 fs-6 fw-normal"><i class="far fa-file-alt"></i> No meeting created</div>
+        </div>
+        
+        <div id="conversationBox" class="conversation-box mb-4" style="flex: 1; min-height: 360px;">
+          <div class="text-muted text-center py-5" id="emptyConvMsg">
+            <i class="fas fa-microphone-slash fs-3"></i><br>No conversation yet.<br> Add participants → Create Meeting → Select speaker → Dictate.
+          </div>
+        </div>
+
+        <div class="mt-2">
+          <label class="fw-semibold small text-secondary mb-2"><i class="fas fa-user-astronaut"></i> Active speakers (click to select before speaking)</label>
+          <div id="speakerButtonsContainer" class="d-flex flex-wrap gap-2 mb-3">
+            <div class="text-muted fst-italic small">No participants yet → add participants on left & click 'Create Meeting'</div>
+          </div>
+        </div>
+
+        <div class="mt-2 bg-light p-3 rounded-4">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+              <i class="fas fa-microphone-alt fs-5 text-danger"></i>
+              <span class="fw-medium">Speech-to-Text:</span>
+              <div id="recordingStatus" class="badge bg-secondary">⚪ Inactive</div>
+              <button id="startDictationBtn" class="btn btn-sm btn-success rounded-pill px-4" disabled><i class="fas fa-play"></i> Start</button>
+              <button id="stopDictationBtn" class="btn btn-sm btn-outline-danger rounded-pill px-4" disabled><i class="fas fa-stop"></i> Stop</button>
+            </div>
+            <small class="text-muted"><i class="fas fa-info-circle"></i> Click speaker badge, then record.</small>
+          </div>
+          <div id="interimNote" class="small text-info mt-2 fst-italic"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+
+<script>
+
+sessionStorage.setItem('currentMeetingId', '');  // Initialize currentMeetingId in sessionStorage
+sessionStorage.setItem('currentMeetingTitle', '');  // Initialize currentMeetingTitle in sessionStorage
+var currentMeetingId = sessionStorage.getItem('currentMeetingId');  // Retrieve currentMeetingId from sessionStorage
+var currentMeetingTitle = sessionStorage.getItem('currentMeetingTitle');  // Retrieve currentMeetingTitle from sessionStorage
+
+
+
+// when #createMeetingBtn is clicked, get #meetingDescriptionInput value and  meetingNameInput value
+$(document).ready(function() {
+  $('#createMeetingBtn').click(function() {
+    var meetingTitle = $('#meetingNameInput').val();
+    var meetingDescription = $('#meetingDescriptionInput').val();
+  // ajax post to /api/meetings/ with meetingTitle and meetingDescription as data
+    $.ajax({
+      url: '/api/meetings/',
+      type: 'POST',
+      data: {
+        title: meetingTitle,
+        description: meetingDescription,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+       
+      },
+     
+      success: function(response) {
+        console.log('Meeting created successfully:', response);
+        // #displayMeetingTitle text to response.title
+        currentMeetingId = response.data.id;
+        currentMeetingTitle = response.data.title;
+        sessionStorage.setItem('currentMeetingId', currentMeetingId);
+        sessionStorage.setItem('currentMeetingTitle', currentMeetingTitle);
+        $('#displayMeetingTitle').html('<i class="far fa-file-alt"></i> ' + sessionStorage.getItem('currentMeetingTitle'));
+      },
+      error: function(xhr, status, error) {
+        alert('Error creating meeting: ' + error);
+      }
+    }); //ajax
+  });  //click fun
+});  //function
+
+// #addPersonBtn click event, #newParticipantName value, ajax post to /api/participants/ with name and currentMeetingId
+$(document).ready(function() {
+  $('#addPersonBtn').click(function() {
+    var participantName = $('#newParticipantName').val();
+    var meetingId = sessionStorage.getItem('currentMeetingId');
+    if (!meetingId) {
+      alert('Please create a meeting first.');
+      return;
+    }
+    $.ajax({
+      url: `/api/meetings/${meetingId}/participants/`,
+      type: 'POST',
+      data: {
+        participant: participantName,
+        meeting: meetingId,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function(response) {
+        console.log('Participant added successfully:', response);
+        // Clear input field after successful addition
+        $('#newParticipantName').val('');
+        // Optionally, you can also update the participant list in the UI here
+      },
+      error: function(xhr, status, error) {
+        alert('Error adding participant: ' + error);
+      }
+    }); //ajax
+  });  //click fun
+});  //function
+
+// display currentMeetingTitle in #displayMeetingTitle on page load
+$(document).ready(function() {
+  var storedTitle = sessionStorage.getItem('currentMeetingTitle');
+  if (storedTitle) {
+    $('#displayMeetingTitle').html('<i class="far fa-file-alt"></i> ' + storedTitle);
+  }
+});
+
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Participant Manager | Law Firm Meeting System</title>
+    <!-- Bootstrap 5 + Icons + Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f4f9 0%, #e8eef5 100%);
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+        
+        .page-container {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+        
+        /* Left Panel - Participant Setup */
+        .participant-panel {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .participant-header {
+            background: linear-gradient(135deg, #1e4a76 0%, #0f3b5f 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 28px 28px 0 0;
+        }
+        
+        .add-participant-area {
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .participant-list-area {
+            padding: 1.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .participant-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .participant-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-color: #cbd5e1;
+        }
+        
+        .participant-name {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+        
+        .participant-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-icon {
+            padding: 0.4rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-icon:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn-edit-participant {
+            background: #dbeafe;
+            color: #1e40af;
+            border: none;
+        }
+        
+        .btn-edit-participant:hover {
+            background: #bfdbfe;
+        }
+        
+        .btn-delete-participant {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: none;
+        }
+        
+        .btn-delete-participant:hover {
+            background: #fecaca;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #94a3b8;
+        }
+        
+        /* Right Panel - Meeting Room */
+        .meeting-room-panel {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .meeting-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            padding: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            border-radius: 28px 28px 0 0;
+        }
+        
+        .conversation-box {
+            flex: 1;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #fafcff;
+        }
+        
+        .chat-message {
+            background: white;
+            border-radius: 20px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #3b82f6;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .speaker-name {
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .timestamp {
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+        
+        .speaker-buttons-container {
+            padding: 1rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .speaker-badge {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 60px;
+            padding: 0.5rem 1.2rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .speaker-badge:hover {
+            background: #e6edf5;
+            transform: translateY(-2px);
+        }
+        
+        .speaker-badge.active {
+            background: #1e4a76;
+            color: white;
+            border-color: #1e4a76;
+        }
+        
+        .recording-controls {
+            padding: 1rem;
+            background: #ffffff;
+            border-radius: 0 0 28px 28px;
+        }
+        
+        .btn-recording {
+            border-radius: 60px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+        }
+        
+        .toast-custom {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1100;
+            background: #1f2937;
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            animation: slideInRight 0.3s ease;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .badge-count {
+            background: #2563eb;
+            color: white;
+            border-radius: 40px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 0.8rem;
+            }
+            
+            .participant-card {
+                padding: 0.75rem;
+            }
+            
+            .speaker-badge {
+                padding: 0.35rem 1rem;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* Custom scrollbar */
+        .participant-list-area::-webkit-scrollbar,
+        .conversation-box::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .participant-list-area::-webkit-scrollbar-track,
+        .conversation-box::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        .participant-list-area::-webkit-scrollbar-thumb,
+        .conversation-box::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        /* Input focus effects */
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            border: none;
+            border-radius: 60px;
+            padding: 0.5rem 1.5rem;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-container">
+    <div class="row g-4">
+        
+        <!-- LEFT PANEL: PARTICIPANT SETUP -->
+        <div class="col-lg-5 col-xl-4">
+            <div class="participant-panel">
+                <div class="participant-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-users fa-2x"></i>
+                        <div>
+                            <h4 class="mb-0 fw-semibold">Participant Setup</h4>
+                            <small class="opacity-75">{{meeting.title}}</small>
+                            
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Add Participant Section -->
+                <div class="add-participant-area">
+                    <label class="form-label fw-semibold mb-2">
+                        <i class="fas fa-user-plus me-1"></i>Add New Participant
+                    </label>
+                    <div class="input-group">
+                        <input type="number" id="meetingIdInput" class="form-control" value="{{meeting.id}}" hidden>
+                        <input type="text" id="participantNameInput" class="form-control" 
+                               placeholder="Enter full name (e.g., Attorney Smith)" 
+                               autocomplete="off">
+                        <button id="addParticipantBtn" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-1"></i>Add
+                        </button>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="fas fa-info-circle"></i> Press Enter or click Add to include participant
+                    </small>
+                </div>
+                
+                <!-- Participant List Section -->
+                <div class="participant-list-area">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-semibold mb-0">
+                            <i class="fas fa-list-check me-1"></i>Participant List
+                            <span id="participantCount" class="badge-count ms-2">0</span>
+                        </h6>
+                        <button id="clearAllBtn" class="btn btn-sm btn-outline-danger" style="border-radius: 40px;">
+                            <i class="fas fa-trash-alt"></i> Clear All
+                        </button>
+                    </div>
+                    
+                    <div id="participantListContainer">
+                        <!-- Dynamic participant list will appear here -->
+                        <div class="empty-state">
+                            <i class="fas fa-users-slash fa-3x mb-3"></i>
+                            <p>No participants added yet.<br>Add someone to start the meeting.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- RIGHT PANEL: MEETING ROOM -->
+        <div class="col-lg-7 col-xl-8">
+            <div class="meeting-room-panel">
+                <div class="meeting-header">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <h5 class="mb-0 fw-semibold">
+                                <i class="fas fa-comments me-2"></i>Live Meeting Transcript
+                            </h5>
+                            <small class="text-muted">Real-time speech-to-text transcription</small>
+                        </div>
+                        <div id="meetingStatus" class="badge bg-success">● Ready</div>
+                    </div>
+                </div>
+                
+                <!-- Conversation Box -->
+                <div id="conversationBox" class="conversation-box">
+                    <div class="text-center text-muted py-5" id="emptyConvMsg">
+                        <i class="fas fa-microphone-alt fa-3x mb-3 opacity-25"></i>
+                        <p>No conversation yet.<br>Select a speaker and start dictation.</p>
+                    </div>
+                </div>
+                
+                <!-- Speaker Buttons -->
+                <div class="speaker-buttons-container">
+                    <label class="fw-semibold small mb-2 d-block">
+                        <i class="fas fa-microphone-alt me-1"></i>Active Speakers (click to select)
+                    </label>
+                    <div id="speakerButtonsArea" class="d-flex flex-wrap gap-2">
+                        <div class="text-muted fst-italic">No participants available. Add participants from left panel.</div>
+                    </div>
+                </div>
+                
+                <!-- Recording Controls -->
+                <div class="recording-controls">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div class="d-flex gap-2 align-items-center flex-wrap">
+                            <div id="recordingStatus" class="badge bg-secondary">
+                                <i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i> Inactive
+                            </div>
+                            <button id="startRecordingBtn" class="btn btn-success btn-recording" disabled>
+                                <i class="fas fa-play me-1"></i> Start Recording
+                            </button>
+                            <button id="stopRecordingBtn" class="btn btn-outline-danger btn-recording" disabled>
+                                <i class="fas fa-stop me-1"></i> Stop
+                            </button>
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> Click speaker badge, then record
+                        </small>
+                    </div>
+                    <div id="interimNote" class="small text-info mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+const API_BASE_URL = '/api/';
+
+// getcookies function
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Function to fetch and display participants
+function loadParticipants() {
+    const meetingId = document.getElementById('meetingIdInput').value;
+    fetch(`${API_BASE_URL}meetings/${meetingId}/participants/`)
+        .then(response => response.json())
+        .then(data => {
+            const participantListContainer = document.getElementById('participantListContainer');
+            participantListContainer.innerHTML = ''; // Clear existing list
+            
+            if (data.length === 0) {
+                participantListContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users-slash fa-3x mb-3"></i>
+                        <p>No participant added yet.<br>Add someone to start the meeting.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            data.forEach(participant => {
+                const participantCard = document.createElement('div');
+                participantCard.className = 'participant-card d-flex justify-content-between align-items-center';
+                participantCard.innerHTML = `
+                    <div class="participant-name">${participant.participant}</div>
+                    <div class="participant-actions">
+                        <button class="btn btn-sm btn-edit-participant" onclick="editParticipant(${participant.id})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-sm btn-delete-participant" onclick="deleteParticipant(${participant.id})">
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </button>
+                    </div>
+                `;
+                participantListContainer.appendChild(participantCard);
+            }
+            
+        );
+        })
+        .then(data => {
+           // speakerButtonsArea update
+           const speakerButtonsArea = document.getElementById('speakerButtonsArea');
+              speakerButtonsArea.innerHTML = ''; // Clear existing buttons
+                if (data.length === 0) {
+                    speakerButtonsArea.innerHTML = `<div class="text-muted fst-italic">No participants available. Add participants from left panel.</div>`;
+                } else {
+                    data.forEach(participant => {
+                        const speakerBadge = document.createElement('div');
+                        speakerBadge.className = 'speaker-badge';
+                        speakerBadge.textContent = participant.participant;
+
+                        // Add participatant Name badge click event to slect speaker
+                      
+                        
+                    });
+                }
+        })
+        .catch(error => console.error('Error fetching participants:', error));
+}
+
+// initial load 
+loadParticipants();
+
+// add participant event
+document.getElementById('addParticipantBtn').addEventListener('click', () => {
+    const meetingId = document.getElementById('meetingIdInput').value;
+    const participantName = document.getElementById('participantNameInput').value.trim();
+    
+    if (!participantName) {
+        alert('Please enter a participant name.');
+        return;
+    }
+    
+    fetch(`${API_BASE_URL}meetings/${meetingId}/participants/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ participant: participantName })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById('participantNameInput').value = ''; // Clear input
+        loadParticipants(); // Refresh list
+    })
+    .catch(error => console.error('Error adding participant:', error));
+});
+
+
+
+
+</script>
+
+
+
+
+</body>
+</html>

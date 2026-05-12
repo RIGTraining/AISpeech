@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>LawFirm Dictate Pro | Speech-to-Text Meeting System</title>
+  <!-- Bootstrap 5 + Icons + Fonts -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      background: #f0f4f9;
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+    .card-custom {
+      border: none;
+      border-radius: 28px;
+      background: white;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.02);
+      transition: all 0.2s ease;
+    }
+    .page-container {
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+    .page-header {
+      background: white;
+      border-radius: 28px;
+      padding: 1rem 1.8rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      border: 1px solid #eef2f6;
+    }
+    .meeting-title-badge {
+      background: #eef2ff;
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      font-weight: 600;
+      color: #1e3a8a;
+    }
+    .participant-badge {
+      background: #f1f5f9;
+      border-radius: 60px;
+      padding: 0.5rem 1.2rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      position: relative;
+    }
+    .participant-badge:hover {
+      background: #e6edf5;
+      transform: translateY(-1px);
+      border-color: #cbd5e1;
+    }
+    .participant-badge.active-speaker {
+      background: #1e3a8a;
+      color: white;
+      border-color: #1e3a8a;
+      box-shadow: 0 6px 12px -8px rgba(30,58,138,0.4);
+    }
+    .participant-item-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: #f1f5f9;
+      border-radius: 60px;
+      padding: 0.2rem 0.2rem 0.2rem 1rem;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s;
+    }
+    .participant-item-wrapper:hover {
+      background: #e9eef3;
+    }
+    .participant-name-display {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    .btn-participant-action {
+      border-radius: 40px;
+      padding: 0.2rem 0.7rem;
+      font-size: 0.75rem;
+      margin-left: 0.2rem;
+      background: transparent;
+      border: none;
+      transition: all 0.1s;
+      cursor: pointer;
+    }
+    .btn-participant-action:hover {
+      transform: scale(1.05);
+    }
+    .btn-delete-participant {
+      color: #dc2626;
+    }
+    .btn-delete-participant:hover {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .btn-edit-participant {
+      color: #3b82f6;
+    }
+    .btn-edit-participant:hover {
+      background: #dbeafe;
+    }
+    .chat-message {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 0.85rem;
+      border-left: 4px solid #3b82f6;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      transition: 0.1s;
+      word-break: break-word;
+    }
+    .chat-message .speaker-name {
+      font-weight: 700;
+      color: #0f172a;
+      display: inline-block;
+      margin-right: 0.75rem;
+    }
+    .chat-message .timestamp {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+    .chat-message .message-text {
+      margin-top: 0.4rem;
+      color: #1e293b;
+      line-height: 1.45;
+    }
+    .conversation-box {
+      max-height: 460px;
+      overflow-y: auto;
+      background: #fafcff;
+      border-radius: 24px;
+      padding: 1rem;
+    }
+    .add-participant-row {
+      background: #f8fafc;
+      border-radius: 80px;
+      padding: 0.4rem;
+    }
+    .warning-duplicate {
+      animation: shake 0.3s ease-in-out;
+      background-color: #fff5f5;
+      border-color: #fecaca;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    @media (max-width: 768px) {
+      body { padding: 0.8rem; }
+      .participant-badge { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
+      .participant-item-wrapper { padding: 0.15rem 0.15rem 0.15rem 0.8rem; }
+      .btn-participant-action { padding: 0.15rem 0.5rem; }
+    }
+    .conversation-box::-webkit-scrollbar {
+      width: 5px;
+    }
+    .conversation-box::-webkit-scrollbar-track {
+      background: #eef2f6;
+      border-radius: 10px;
+    }
+    .conversation-box::-webkit-scrollbar-thumb {
+      background: #b9c3d0;
+      border-radius: 10px;
+    }
+    .toast-custom {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1100;
+      background: #1f2937;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 60px;
+      font-size: 0.85rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      animation: slideIn 0.2s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-container">
+  <div class="page-header d-flex flex-wrap justify-content-between align-items-center">
+    <div class="d-flex gap-3 align-items-center flex-wrap">
+      <h3 class="mb-0 fw-semibold" style="color:#0c4e6e;"><i class="fas fa-gavel me-2"></i>Law firm</h3>
+      <span class="meeting-title-badge"><i class="fas fa-balance-scale me-1"></i> Law Firm AI Suite</span>
+    </div>
+    <div class="mt-2 mt-sm-0">
+      <small class="text-muted"><i class="fas fa-microphone-alt"></i> Speech to text meeting | Edit/Delete participants</small>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- LEFT PANEL: Meeting Setup with Edit/Delete -->
+    <div class="col-lg-5 col-xl-4">
+      <div class="card-custom p-4 h-100">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="fas fa-sliders-h fs-4" style="color:#2563eb;"></i>
+          <h5 class="fw-semibold mb-0">Meeting Setup</h5>
+        </div>
+        <hr>
+        <!-- Meeting Name Input -->
+        <label class="form-label fw-semibold mt-2"><i class="fas fa-tag me-1"></i>Meeting Title</label>
+        <div class="input-group mb-3">
+          <input type="text" id="meetingNameInput" class="form-control" placeholder="enter meeting title" value="">
+        </div>
+
+        <!-- Meeting Schedule Input -->
+        <label class="form-label fw-semibold mt-2"><i class="fas fa-calendar-alt me-1"></i>Meeting Schedule</label>
+        <div class="input-group mb-3">
+          <input type="datetime-local" id="meetingScheduleInput" class="form-control" placeholder="select meeting schedule" value=""> 
+        </div>
+        
+        <!-- Meeting Name Input -->
+        <label class="form-label fw-semibold mt-2"><i class="fas fa-stamp me-1"></i>Meeting Description</label>
+        <div class="input-group mb-3">
+          <textarea id="meetingDescriptionInput" class="form-control" placeholder="enter meeting description" value=""></textarea>
+        </div>
+
+        <div class="input-group mb-3">
+          <button id="createMeetingBtn" class="btn btn-primary" style="background:#1e4a76; border-radius: 12px 12px 12px 12px; text-align: center;">Create Meeting</button>
+        </div>
+        
+
+        
+        
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Meeting Room -->
+    <div class="col-lg-7 col-xl-8">
+      <div class="card-custom p-4 h-100 d-flex flex-column">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 border-bottom pb-2">
+          <div>
+            <i class="fas fa-comments me-2 fs-5" style="color:#0f5b7a;"></i>
+            <span class="fw-semibold fs-5">Meeting Schedule</span>
+          </div>
+          
+        </div>
+        
+        <!-- Meeting Schedule Table -->
+<div class="table-responsive mt-3">
+  <table class="table table-hover align-middle" id="meetingScheduleTable">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Title</th>
+        <th scope="col">Description</th>
+        <th scope="col">Created At</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Meetings will be populated here dynamically -->
+    </tbody>
+  </table>
+</div>
+
+        
+
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<!-- Django API Endpoints -->
+<script>
+  // Example API endpoint (replace with actual Django API endpoints)
+  // path('meetings/', views.meeting_list, name='meeting-list'),
+  // path('meetings/<int:meeting_id>/', views.meeting_detail, name='meeting-detail'),
+  const API_BASE_URL = '/api/';
+
+  // Fetch and display meetings
+function loadMeetings() {
+  $.ajax({
+    url: API_BASE_URL + 'meetings/',
+    method: 'GET',
+    success: function(data) {
+      const tbody = $('#meetingScheduleTable tbody');
+      tbody.empty();
+      data.forEach((meeting, index) => {
+        tbody.append(`
+          <tr>
+            <th scope="row">${index + 1}</th>
+            <td>${meeting.title}</td>
+            <td>${meeting.description}</td>
+            <td>${new Date(meeting.schedule_date).toLocaleString()}</td>
+            <td>
+              <button class="btn btn-sm btn-primary me-1" onclick="editMeeting(${meeting.id})">Edit</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteMeeting(${meeting.id})">Delete</button>
+              <a href="/api/meeting_participants_template/${meeting.id}/" class="btn btn-sm btn-secondary ms-1">View</a>
+            </td>
+          </tr>
+        `);
+      });
+    },
+    error: function(err) {
+      console.error('Failed to load meetings', err);
+    }
+  });
+}
+
+// create meeting
+$('#createMeetingBtn').click(function() {
+  const title = $('#meetingNameInput').val();
+  const description = $('#meetingDescriptionInput').val();
+  const schedule_date = $('#meetingScheduleInput').val();
+
+  $.ajax({
+    url: API_BASE_URL + 'meetings/',
+    method: 'POST',
+    contentType: 'application/json',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    data: JSON.stringify({ title, description, schedule_date }),
+    success: function(data) {
+      loadMeetings(); // Refresh the meeting list
+      $('#meetingNameInput').val('');
+      $('#meetingDescriptionInput').val('');
+      $('#meetingScheduleInput').val('');
+    },
+    error: function(err) {
+      console.error('Failed to create meeting', err);
+    }
+  });
+});
+
+// delete meeting
+function deleteMeeting(meetingId) {
+  if (!confirm(`Are you sure you want to delete meeting ?`)) {
+    return;
+  }
+
+  $.ajax({
+    url: API_BASE_URL + `meetings/${meetingId}/`,
+    method: 'DELETE',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    
+    success: function() {
+      loadMeetings(); // Refresh the meeting list
+    },
+    error: function(err) {
+      console.error('Failed to delete meeting', err);
+    }
+  });
+}
+
+// edit meeting
+
+// getcookies function
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Initial load
+$(document).ready(function() {
+  loadMeetings();
+});
+
+
+</script>
+
+</body>
+</html>
