@@ -307,11 +307,31 @@
             background: #1d4ed8;
             transform: translateY(-1px);
         }
+
+        .page-header {
+      background: white;
+      border-radius: 28px;
+      padding: 1rem 1.8rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      border: 1px solid #eef2f6;
+    }
     </style>
 </head>
 <body>
 
 <div class="page-container">
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-center">
+    <div class="d-flex gap-3 align-items-center flex-wrap">
+      <h3 class="mb-0 fw-semibold" style="color:#0c4e6e;"><i class="fas fa-gavel me-2"></i>AI Speech</h3>
+      <span class="meeting-title-badge"><i class="fas fa-balance-scale me-1"></i> AI Suite</span>
+    </div>
+    <div class="mt-2 mt-sm-0">
+      <small class="text-muted"><i class="fas fa-home"></i> <a href="/">Home</a>| <a href="/api/viewTranscript/{{ meeting.id }}/">Transcript</a></small>
+    </div>
+  </div>
+
+
     <div class="row g-4">
         
         <!-- LEFT PANEL: PARTICIPANT SETUP -->
@@ -354,9 +374,9 @@
                             <i class="fas fa-list-check me-1"></i>Participant List
                             <span id="participantCount" class="badge-count ms-2">0</span>
                         </h6>
-                        <button id="clearAllBtn" class="btn btn-sm btn-outline-danger" style="border-radius: 40px;">
+                        <!-- <button id="clearAllBtn" class="btn btn-sm btn-outline-danger" style="border-radius: 40px;">
                             <i class="fas fa-trash-alt"></i> Clear All
-                        </button>
+                        </button> -->
                     </div>
                     
                     <div id="participantListContainer">
@@ -861,13 +881,27 @@ function stopRecording() {
     }
 }
 
-// Append final message
+// Append message to API Url /meetings/<int:meeting_id>/transcripts/ and Conversation Box
+// data format: { "speaker": "Attorney Smith", "text": "This is the transcribed text." }
+// Append final transcript message + save to API
 function appendMessage(speakerName, text) {
+
+    const meetingId = document.getElementById('meetingIdInput').value;
+
+    // =========================
+    // 1. Append to UI
+    // =========================
     const conversationBox = document.getElementById('conversationBox');
     const emptyMsg = document.getElementById('emptyConvMsg');
-    if (emptyMsg) emptyMsg.style.display = 'none';
 
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (emptyMsg) {
+        emptyMsg.style.display = 'none';
+    }
+
+    const time = new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 
     const html = `
         <div class="chat-message">
@@ -880,7 +914,38 @@ function appendMessage(speakerName, text) {
     conversationBox.insertAdjacentHTML('beforeend', html);
     conversationBox.scrollTop = conversationBox.scrollHeight;
 
-    document.getElementById('interimNote').innerHTML = `✅ Recorded from <strong>${speakerName}</strong>`;
+    // =========================
+    // 2. Save Transcript to API
+    // =========================
+    fetch(`${API_BASE_URL}meetings/${meetingId}/transcripts/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            participant: speakerName,
+            transcript: text
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to save transcript');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Transcript saved:', data);
+
+        document.getElementById('interimNote').innerHTML =
+            `✅ Recorded from <strong>${speakerName}</strong>`;
+    })
+    .catch(error => {
+        console.error('Transcript API Error:', error);
+
+        document.getElementById('interimNote').innerHTML =
+            `⚠️ Saved locally but API failed`;
+    });
 }
 
 // Event Listeners

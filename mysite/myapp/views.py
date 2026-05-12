@@ -69,6 +69,26 @@ def meeting_participants(request, meeting_id):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+@api_view(['GET', 'POST'])
+def meeting_transcripts(request, meeting_id):
+    try:
+        meeting = Meeting.objects.get(pk=int(meeting_id))
+    except Meeting.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        transcripts = MeetingTranscript.objects.filter(meeting=meeting)
+        serializer = MeetingTranscriptSerializer(transcripts, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        data = request.data.copy()
+        data['meeting'] = meeting.id
+        serializer = MeetingTranscriptSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 #================= Template Views ====================
@@ -77,3 +97,9 @@ def meeting_participants_template(request, meeting_id):
     meeting = get_object_or_404(Meeting, pk=meeting_id)
     participants = MeetingParticipant.objects.filter(meeting=meeting)
     return render(request, 'participants.html', {'meeting': meeting, 'participants': participants})
+
+
+def viewTranscript(request, meeting_id):
+    meeting = get_object_or_404(Meeting, pk=meeting_id)
+    transcripts = MeetingTranscript.objects.filter(meeting=meeting)
+    return render(request, 'viewTranscriptEdit.html', {'meeting': meeting, 'transcripts': transcripts})
