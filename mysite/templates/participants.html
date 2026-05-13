@@ -978,7 +978,29 @@ document.getElementById('stopRecordingBtn').addEventListener('click', stopRecord
 // Initial Load
 loadParticipants();
 
- 
+// ============= participant edit & delete (optional) =============
+function deleteParticipant(id){
+    if (confirm('Delete this participant?')) {
+        const meetingId = document.getElementById('meetingIdInput').value;
+        fetch(`${API_BASE_URL}meetings/${meetingId}/participants/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            // data : {"participant_id": id}
+            body: JSON.stringify({ participant_id: id })
+
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to delete');
+            loadParticipants();
+        })
+        .catch(err => console.error('Delete error:', err));
+    }
+}
+
+
+
 
 </script>
 
