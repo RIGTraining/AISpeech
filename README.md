@@ -1,5 +1,3 @@
 # AISpeech
 
-how are you
-
-we;
+pip install moviepy speechrecognition pydub
