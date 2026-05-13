@@ -371,6 +371,39 @@ function deleteMeeting(meetingId) {
 }
 
 // edit meeting
+function editMeeting(meetingId) {
+  // Fetch current meeting details
+  $.ajax({
+    url: API_BASE_URL + `meetings/${meetingId}/`,
+    method: 'GET',
+    success: function(meeting) {
+      const newTitle = prompt('Edit Meeting Title:', meeting.title);
+      const newDescription = prompt('Edit Meeting Description:', meeting.description);
+      const newSchedule = prompt('Edit Meeting Schedule (YYYY-MM-DDTHH:MM):', meeting.schedule_date.replace(' ', 'T').slice(0,16));
+
+      if (newTitle && newDescription && newSchedule) {
+        $.ajax({
+          url: API_BASE_URL + `meetings/${meetingId}/`,
+          method: 'PUT',
+          contentType: 'application/json',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          data: JSON.stringify({ title: newTitle, description: newDescription, schedule_date: newSchedule }),
+          success: function() {
+            loadMeetings(); // Refresh the meeting list
+          },
+          error: function(err) {
+            console.error('Failed to update meeting', err);
+          }
+        });
+      }
+    },
+    error: function(err) {
+      console.error('Failed to fetch meeting details', err);
+    }
+  });
+}
 
 // getcookies function
 function getCookie(name) {

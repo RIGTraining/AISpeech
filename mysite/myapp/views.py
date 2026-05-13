@@ -46,6 +46,8 @@ def meeting_detail(request, pk):
         meeting.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+# ==================== update meeting =====================
+
 # meeting participants 
 #MeetingParticipantSerializer
 @api_view(['GET', 'POST'])
