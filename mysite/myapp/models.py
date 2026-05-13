@@ -20,7 +20,7 @@ class MeetingParticipant(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.participant} - {self.meeting.title}"
+        return f"{self.participant} - {self.meeting.title} - {self.id}"
     
 class MeetingTranscript(models.Model):
     meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name='transcripts')
