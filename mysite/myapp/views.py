@@ -74,19 +74,18 @@ def meeting_participants(request, meeting_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'PUT':
-        participant_id = request.data.get('participant')
-        if not participant_id:
-            return Response({'error': 'Participant ID is required for update.'}, status=status.HTTP_400_BAD_REQUEST)
+        participant_id = json.loads(request.body).get('participant_id')
+        participant = json.loads(request.body).get('participant')
+        if not participant_id or not participant:
+            return Response({'error': 'Participant ID and name are required for update.'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            participant = MeetingParticipant.objects.get(id=int(participant_id))
+            participant_obj = MeetingParticipant.objects.get(id=int(participant_id))
         except MeetingParticipant.DoesNotExist:
             return Response({'error': 'Participant not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = MeetingParticipantSerializer(participant, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        participant_obj.participant = participant
+        participant_obj.save()
+        return Response({'message': 'Participant updated successfully.'})
+        
     
     elif request.method == 'DELETE':
         participant_id = json.loads(request.body).get('participant_id')
