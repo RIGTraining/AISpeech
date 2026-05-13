@@ -1,6 +1,5 @@
 from django.db import models
 
-<<<<<<< HEAD
 class Video(models.Model):
 
     title = models.CharField(max_length=255)
@@ -13,7 +12,6 @@ class Video(models.Model):
 
     def __str__(self):
         return self.title
-=======
 # Create your models here.
 class VideoUpload(models.Model):
     video = models.FileField(upload_to='videos/')
@@ -23,4 +21,3 @@ class VideoUpload(models.Model):
 
     def __str__(self):
         return f"Video {self.id} - {self.uploaded_at}"
->>>>>>> ae38888fc89a007c60437c54139567cb37dd73d1

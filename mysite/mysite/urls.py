@@ -29,7 +29,6 @@ urlpatterns = [
     path('meeting_participants/', TemplateView.as_view(template_name='addparticipant.html'), name='meeting_participants'),
     path('uploadVideo/', TemplateView.as_view(template_name='uploadVideo.html'), name='uploadVideo'),
     
-<<<<<<< HEAD
 ]
 from django.conf import settings
 from django.conf.urls.static import static
@@ -38,6 +37,3 @@ urlpatterns += static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT
 )
-=======
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
->>>>>>> ae38888fc89a007c60437c54139567cb37dd73d1

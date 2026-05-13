@@ -306,9 +306,7 @@
                             <i class="fas fa-list-ul me-1"></i>Video Lists
                             <span id="videoCount" class="badge bg-primary ms-2">0</span>
                         </h6>
-                        <button id="refreshVideosBtn" class="btn btn-sm btn-outline-secondary" style="border-radius: 40px;">
-                            <i class="fas fa-sync-alt"></i> Refresh
-                        </button>
+                        
                     </div>
                     
                     <div style="overflow-x: auto;">
@@ -833,7 +831,8 @@ fileInput.addEventListener('change', async (e) => {
             // Reset form
             fileInput.value = '';
             if (data.success) {
-                alert(`✓ "${title}" uploaded successfully!`);
+                
+                loadVideos(); // Refresh video list after upload
             } else {
                 alert('Upload failed');
             }
