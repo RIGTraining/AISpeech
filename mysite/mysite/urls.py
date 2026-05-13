@@ -23,6 +23,6 @@ urlpatterns = [
     path('api/', include('myapp.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('meeting_participants/', TemplateView.as_view(template_name='addparticipant.html'), name='meeting_participants'),
-    # path('viewTranscript/<int:meeting_id>/', TemplateView.as_view(template_name='viewTranscript.html'), name='viewTranscript'),
+    path('uploadVideo/', TemplateView.as_view(template_name='uploadVideo.html'), name='uploadVideo'),
     
 ]
