@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Video Upload | AI Speech Law Firm</title>
+    <!-- Bootstrap 5 + Icons + Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f4f9 0%, #e8eef5 100%);
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+        
+        .page-container {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+        
+        /* Header Styling */
+        .page-header {
+            background: white;
+            border-radius: 28px;
+            padding: 1rem 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #eef2f6;
+        }
+        
+        .meeting-title-badge {
+            background: #eef2ff;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+        
+        /* Left Panel - Video Setup */
+        .video-panel {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .video-header {
+            background: linear-gradient(135deg, #1e4a76 0%, #0f3b5f 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 28px 28px 0 0;
+        }
+        
+        .upload-area {
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        /* Video List Area */
+        .video-list-area {
+            padding: 1.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        /* Table Styling */
+        .video-table {
+            width: 100%;
+            font-size: 0.85rem;
+        }
+        
+        .video-table th {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            color: #1e293b;
+            font-weight: 600;
+            padding: 0.75rem;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+        
+        .video-table td {
+            padding: 0.75rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .video-table tr:hover {
+            background: #f8fafc;
+        }
+        
+        .btn-action {
+            padding: 0.3rem 0.6rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            margin: 0 0.2rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-action:hover {
+            transform: scale(1.05);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #94a3b8;
+        }
+        
+        /* Preview Modal */
+        .video-preview-modal .modal-content {
+            border-radius: 20px;
+        }
+        
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+        
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Custom Scrollbar */
+        .video-list-area::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .video-list-area::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        .video-list-area::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 0.8rem;
+            }
+            
+            .video-header {
+                padding: 1rem;
+            }
+            
+            .video-table {
+                font-size: 0.7rem;
+            }
+            
+            .btn-action {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.65rem;
+            }
+        }
+        
+        /* Toast Notifications */
+        .toast-custom {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1100;
+            background: #1f2937;
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            animation: slideInRight 0.3s ease;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* File input styling */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .upload-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 12px;
+            display: none;
+        }
+        
+        .upload-preview.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-container">
+    <!-- Header -->
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-center">
+        <div class="d-flex gap-3 align-items-center flex-wrap">
+            <h3 class="mb-0 fw-semibold" style="color:#0c4e6e;"><i class="fas fa-video me-2"></i>AI Speech</h3>
+            <span class="meeting-title-badge"><i class="fas fa-microphone-alt me-1"></i> Video Management Suite</span>
+        </div>
+        <div class="mt-2 mt-sm-0">
+            <small class="text-muted"><i class="fas fa-upload"></i> Upload, manage, and transcribe videos</small>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        
+        <!-- LEFT PANEL: VIDEO SETUP -->
+        <div class="col-lg-5 col-xl-4">
+            <div class="video-panel">
+                <div class="video-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-video fa-2x"></i>
+                        <div>
+                            <h4 class="mb-0 fw-semibold">Video Setup</h4>
+                            
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Upload Section -->
+                <div class="upload-area">
+                    <!-- Video Title -->
+                    <label class="form-label fw-semibold mb-2">
+                        <i class="fas fa-heading me-1"></i>Video Title
+                    </label>
+                    <input type="text" id="videoTitle" class="form-control mb-3" 
+                           placeholder="Enter video title" autocomplete="off">
+                    
+                    <!-- Video Summary (replaces Meeting Description) -->
+                    <label class="form-label fw-semibold mb-2">
+                        <i class="fas fa-align-left me-1"></i>Video Summary
+                    </label>
+                    <textarea id="videoSummary" class="form-control mb-3" rows="3" 
+                              placeholder="Enter a brief summary of the video content..."></textarea>
+                    
+                    <!-- File Upload Button (replaces Create Meeting) -->
+                    <button id="uploadVideoBtn" class="btn btn-primary w-100" style="border-radius: 60px; padding: 0.75rem;">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>Upload Video
+                    </button>
+                    
+                    <input type="file" id="videoFileInput" accept="video/*" style="display: none;">
+                    
+                    <!-- Upload Preview -->
+                    <div id="uploadPreview" class="upload-preview">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-spinner fa-spin text-primary"></i>
+                            <span id="previewFileName"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Video List Section (replaces Meeting Schedule) -->
+                <div class="video-list-area">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-semibold mb-0">
+                            <i class="fas fa-list-ul me-1"></i>Video Lists
+                            <span id="videoCount" class="badge bg-primary ms-2">0</span>
+                        </h6>
+                        <button id="refreshVideosBtn" class="btn btn-sm btn-outline-secondary" style="border-radius: 40px;">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="video-table" id="videoTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th><i class="fas fa-tag"></i> Title</th>
+                                    <th><i class="fas fa-align-left"></i> Summary</th>
+                                    <th><i class="far fa-calendar-alt"></i> Created At</th>
+                                    <th><i class="fas fa-cogs"></i> Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="videoTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="fas fa-video-slash fa-2x mb-2 d-block"></i>
+                                        No videos uploaded yet.<br>Upload your first video above.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- RIGHT PANEL: VIDEO PREVIEW & TRANSCRIPTION -->
+        <div class="col-lg-7 col-xl-8">
+            <div class="video-panel">
+                <div class="video-header">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-play-circle fa-2x"></i>
+                            <div>
+                                <h5 class="mb-0 fw-semibold">Video Player & Transcription</h5>
+                                <small class="opacity-75">Play video and view AI-generated transcript</small>
+                            </div>
+                        </div>
+                        <div id="processingStatus" class="badge bg-secondary">
+                            <i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i> Ready
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Video Player Area -->
+                <div style="padding: 1.5rem; background: #000; border-radius: 0;">
+                    <video id="videoPlayer" controls style="width: 100%; border-radius: 12px; display: none;">
+                        <source id="videoSource" src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div id="noVideoSelected" class="text-center py-5" style="color: #94a3b8;">
+                        <i class="fas fa-video-slash fa-4x mb-3"></i>
+                        <p>No video selected. Click "View" on any video from the list.</p>
+                    </div>
+                </div>
+                
+                <!-- Transcription Area -->
+                <div style="padding: 1.5rem; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-semibold mb-0">
+                            <i class="fas fa-microphone-alt me-1"></i>AI Transcription
+                        </h6>
+                        <button id="exportTranscriptBtn" class="btn btn-sm btn-outline-primary" style="border-radius: 40px;" disabled>
+                            <i class="fas fa-download me-1"></i> Export Transcript
+                        </button>
+                    </div>
+                    <div id="transcriptBox" style="height: 300px; overflow-y: auto; background: white; border-radius: 16px; padding: 1rem;">
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-language fa-3x mb-2"></i>
+                            <p>AI transcription will appear here after video processing.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Preview Modal -->
+<div class="modal fade" id="videoPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-video me-2"></i>Video Preview
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="video-container">
+                    <video id="previewVideo" controls style="width: 100%; height: auto;">
+                        <source id="previewVideoSource" src="">
+                    </video>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ========== VIDEO MANAGEMENT SYSTEM ==========
+    
+    // Video data storage (simulated database)
+    let videos = [];
+    let currentVideoId = null;
+    
+    // Load videos from localStorage (or API)
+    function loadVideos() {
+        const stored = localStorage.getItem('lawFirmVideos');
+        if (stored) {
+            videos = JSON.parse(stored);
+        } else {
+            // Sample demo videos
+            videos = [
+                {
+                    id: 1,
+                    title: "Legal Deposition - Smith Case",
+                    summary: "Key witness testimony regarding the corporate fraud allegations.",
+                    createdAt: new Date(2026, 4, 13, 9, 30).toLocaleString(),
+                    fileUrl: null,
+                    transcript: "This is a sample transcript. AI will generate detailed transcription for uploaded videos."
+                },
+                {
+                    id: 2,
+                    title: "Client Consultation - Johnson Family",
+                    summary: "Discussion about estate planning and trust fund setup.",
+                    createdAt: new Date(2026, 4, 12, 14, 15).toLocaleString(),
+                    fileUrl: null,
+                    transcript: "Client expressed concerns about inheritance tax and asset distribution."
+                }
+            ];
+            saveVideos();
+        }
+        renderVideoTable();
+    }
+    
+    // Save videos to localStorage
+    function saveVideos() {
+        localStorage.setItem('lawFirmVideos', JSON.stringify(videos));
+    }
+    
+    // Render video table
+    function renderVideoTable() {
+        const tbody = document.getElementById('videoTableBody');
+        const videoCount = document.getElementById('videoCount');
+        
+        videoCount.textContent = videos.length;
+        
+        if (videos.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="fas fa-video-slash fa-2x mb-2 d-block"></i>
+                        No videos uploaded yet.<br>Upload your first video above.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tbody.innerHTML = '';
+        videos.forEach((video, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td><strong>${escapeHtml(video.title)}</strong></td>
+                <td><small>${escapeHtml(video.summary.substring(0, 50))}${video.summary.length > 50 ? '...' : ''}</small></td>
+                <td><small>${video.createdAt}</small></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary btn-action edit-video" data-id="${video.id}" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger btn-action delete-video" data-id="${video.id}" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary btn-action settings-video" data-id="${video.id}" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-success btn-action view-video" data-id="${video.id}" title="View Transcript">
+                        <i class="fas fa-file-alt"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        // Attach event listeners
+        document.querySelectorAll('.edit-video').forEach(btn => {
+            btn.addEventListener('click', () => editVideo(parseInt(btn.dataset.id)));
+        });
+        
+        document.querySelectorAll('.delete-video').forEach(btn => {
+            btn.addEventListener('click', () => deleteVideo(parseInt(btn.dataset.id)));
+        });
+        
+        document.querySelectorAll('.settings-video').forEach(btn => {
+            btn.addEventListener('click', () => videoSettings(parseInt(btn.dataset.id)));
+        });
+        
+        document.querySelectorAll('.view-video').forEach(btn => {
+            btn.addEventListener('click', () => viewVideoTranscript(parseInt(btn.dataset.id)));
+        });
+    }
+    
+    // Upload video function
+    function uploadVideo() {
+        const title = document.getElementById('videoTitle').value.trim();
+        const summary = document.getElementById('videoSummary').value.trim();
+        const fileInput = document.getElementById('videoFileInput');
+        
+        if (!title) {
+            showMessage('Please enter a video title', true);
+            return;
+        }
+        
+        if (!summary) {
+            showMessage('Please enter a video summary', true);
+            return;
+        }
+        
+        // Show processing status
+        const processingStatus = document.getElementById('processingStatus');
+        processingStatus.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+        processingStatus.className = 'badge bg-warning';
+        
+        // Simulate upload and AI processing
+        setTimeout(() => {
+            const newVideo = {
+                id: Date.now(),
+                title: title,
+                summary: summary,
+                createdAt: new Date().toLocaleString(),
+                fileUrl: null,
+                transcript: generateAITranscript(title, summary)
+            };
+            
+            videos.unshift(newVideo);
+            saveVideos();
+            renderVideoTable();
+            
+            // Clear form
+            document.getElementById('videoTitle').value = '';
+            document.getElementById('videoSummary').value = '';
+            
+            processingStatus.innerHTML = '<i class="fas fa-check-circle me-1"></i> Upload Complete';
+            processingStatus.className = 'badge bg-success';
+            showMessage(`✓ "${title}" uploaded successfully!`);
+            
+            setTimeout(() => {
+                processingStatus.innerHTML = '<i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i> Ready';
+                processingStatus.className = 'badge bg-secondary';
+            }, 3000);
+            
+        }, 2000);
+    }
+    
+    // Generate AI transcript simulation
+    function generateAITranscript(title, summary) {
+        return `[AI Generated Transcript for: ${title}]\n\n` +
+               `Summary: ${summary}\n\n` +
+               `00:00:05 - Speaker 1: Good morning. Today we're discussing the legal aspects of the case.\n\n` +
+               `00:00:15 - Speaker 2: Thank you. Based on the evidence presented, we need to focus on three key areas.\n\n` +
+               `00:00:28 - Speaker 1: Let's review the documentation first. The client has provided all necessary files.\n\n` +
+               `00:00:42 - Speaker 2: Excellent. I've prepared a detailed analysis of the contract terms.\n\n` +
+               `00:01:00 - This transcript was generated using AI speech recognition technology.\n` +
+               `For official legal proceedings, please review and verify accuracy.`;
+    }
+    
+    // Edit video
+    function editVideo(id) {
+        const video = videos.find(v => v.id === id);
+        if (!video) return;
+        
+        const newTitle = prompt('Edit Video Title:', video.title);
+        if (newTitle && newTitle.trim()) {
+            video.title = newTitle.trim();
+        }
+        
+        const newSummary = prompt('Edit Video Summary:', video.summary);
+        if (newSummary && newSummary.trim()) {
+            video.summary = newSummary.trim();
+        }
+        
+        saveVideos();
+        renderVideoTable();
+        showMessage('Video updated successfully!');
+    }
+    
+    // Delete video with confirmation
+    function deleteVideo(id) {
+        const video = videos.find(v => v.id === id);
+        if (!video) return;
+        
+        const confirmDelete = confirm(`⚠️ Delete Video\n\nAre you sure you want to delete "${video.title}"?\n\nThis action cannot be undone.`);
+        
+        if (confirmDelete) {
+            const index = videos.findIndex(v => v.id === id);
+            videos.splice(index, 1);
+            saveVideos();
+            renderVideoTable();
+            
+            // Clear player if current video was deleted
+            if (currentVideoId === id) {
+                document.getElementById('videoPlayer').style.display = 'none';
+                document.getElementById('noVideoSelected').style.display = 'block';
+                document.getElementById('transcriptBox').innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-language fa-3x mb-2"></i>
+                        <p>AI transcription will appear here after video processing.</p>
+                    </div>
+                `;
+                currentVideoId = null;
+            }
+            
+            showMessage(`✓ "${video.title}" deleted successfully`);
+        }
+    }
+    
+    // Video settings
+    function videoSettings(id) {
+        const video = videos.find(v => v.id === id);
+        if (!video) return;
+        
+        alert(`⚙️ Video Settings\n\nTitle: ${video.title}\nSummary: ${video.summary}\nCreated: ${video.createdAt}\n\nAdditional settings coming soon...`);
+    }
+    
+    // View video transcript and play
+    function viewVideoTranscript(id) {
+        const video = videos.find(v => v.id === id);
+        if (!video) return;
+        
+        currentVideoId = id;
+        
+        // Update right panel
+        const videoPlayer = document.getElementById('videoPlayer');
+        const noVideoSelected = document.getElementById('noVideoSelected');
+        const transcriptBox = document.getElementById('transcriptBox');
+        
+        // Show video player (simulated - in real app, load actual video URL)
+        videoPlayer.style.display = 'block';
+        noVideoSelected.style.display = 'none';
+        
+        // Display transcript
+        if (video.transcript) {
+            const transcriptLines = video.transcript.split('\n');
+            transcriptBox.innerHTML = transcriptLines.map(line => {
+                if (line.includes('00:')) {
+                    return `<div style="margin-bottom: 0.75rem; font-family: monospace; border-left: 3px solid #3b82f6; padding-left: 0.75rem;">
+                                <span style="color: #3b82f6; font-weight: 600;">${line.substring(0, 12)}</span>
+                                <span style="color: #334155;">${line.substring(12)}</span>
+                            </div>`;
+                } else if (line.startsWith('[')) {
+                    return `<div style="margin: 0.5rem 0; color: #64748b;"><i class="fas fa-info-circle me-2"></i>${line}</div>`;
+                } else if (line.trim()) {
+                    return `<div style="margin-bottom: 0.5rem; line-height: 1.6;">${escapeHtml(line)}</div>`;
+                }
+                return '';
+            }).join('');
+        } else {
+            transcriptBox.innerHTML = '<div class="text-center text-muted py-4">No transcript available for this video.</div>';
+        }
+        
+        // Enable export button
+        document.getElementById('exportTranscriptBtn').disabled = false;
+        
+        showMessage(`Loading: "${video.title}"`);
+    }
+    
+    // Export transcript
+    function exportTranscript() {
+        if (!currentVideoId) {
+            showMessage('No video selected', true);
+            return;
+        }
+        
+        const video = videos.find(v => v.id === currentVideoId);
+        if (!video || !video.transcript) {
+            showMessage('No transcript available to export', true);
+            return;
+        }
+        
+        const content = `VIDEO TRANSCRIPT\n` +
+                        `================\n\n` +
+                        `Title: ${video.title}\n` +
+                        `Summary: ${video.summary}\n` +
+                        `Created: ${video.createdAt}\n` +
+                        `================\n\n` +
+                        `${video.transcript}\n\n` +
+                        `Generated by AI Speech Law Firm System\n` +
+                        `Certified Digital Transcript`;
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${video.title.replace(/\s/g, '_')}_transcript.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showMessage('Transcript exported successfully!');
+    }
+    
+    // Helper functions
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+    
+    function showMessage(msg, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-custom';
+        toast.style.background = isError ? '#dc2626' : '#059669';
+        toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'} me-2"></i>${msg}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    // Refresh videos
+    function refreshVideos() {
+        loadVideos();
+        showMessage('Video list refreshed');
+    }
+    
+    // File upload handler
+    function setupFileUpload() {
+        const uploadBtn = document.getElementById('uploadVideoBtn');
+        const fileInput = document.getElementById('videoFileInput');
+        
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                const preview = document.getElementById('uploadPreview');
+                const previewFileName = document.getElementById('previewFileName');
+                
+                previewFileName.innerHTML = `<i class="fas fa-file-video me-2"></i>${file.name} - ${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+                preview.classList.add('active');
+                
+                // Automatically upload after file selection
+                uploadVideo();
+                
+                // Clear preview after upload
+                setTimeout(() => {
+                    preview.classList.remove('active');
+                    fileInput.value = '';
+                }, 3000);
+            }
+        });
+    }
+    
+    // Event listeners
+    document.getElementById('refreshVideosBtn').addEventListener('click', refreshVideos);
+    document.getElementById('exportTranscriptBtn').addEventListener('click', exportTranscript);
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadVideos();
+        setupFileUpload();
+    });
+</script>
+</body>
+</html>
