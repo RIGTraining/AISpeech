@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Speech Recognition</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        .container { max-width: 800px; margin: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Video to Text Speech Recognition</h1>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Upload & Transcribe</button>
+        </form>
+    </div>
+</body>
+</html>

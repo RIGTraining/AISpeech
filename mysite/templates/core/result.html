@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transcription Result</title>
+    <style> body { font-family: Arial; margin: 40px; } </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Transcription Result</h1>
+        <p><strong>Uploaded:</strong> {{ video.uploaded_at }}</p>
+        
+        <h2>Transcript:</h2>
+        <p style="white-space: pre-wrap; background: #f4f4f4; padding: 15px; border-radius: 8px;">
+            {{ video.transcript|default:"No transcript available" }}
+        </p>
+        
+        <a href="{% url 'upload' %}">Upload Another Video</a>
+    </div>
+</body>
+</html>
