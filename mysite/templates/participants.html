@@ -997,7 +997,27 @@ function deleteParticipant(id){
         })
         .catch(err => console.error('Delete error:', err));
     }
-}
+}// deleteParticipant
+
+function editParticipant(id){
+    const newName = prompt('Enter new name for participant:');
+    if (newName) {
+        const meetingId = document.getElementById('meetingIdInput').value;
+        fetch(`${API_BASE_URL}meetings/${meetingId}/participants/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ participant_id: id, participant: newName })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to update');
+            loadParticipants();
+        })
+        .catch(err => console.error('Update error:', err));
+    }
+}// editParticipant
 
 
 
