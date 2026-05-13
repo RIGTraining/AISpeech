@@ -709,7 +709,7 @@ function loadParticipants() {
                     card.innerHTML = `
                         <div class="participant-name">${participant.participant}</div>
                         <div class="participant-actions">
-                            <button class="btn btn-sm btn-edit-participant" onclick="editParticipant(${participant.id})">
+                            <button class="btn btn-sm btn-edit-participant" onclick="editParticipant(${participant.id}, '${participant.participant}')">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button class="btn btn-sm btn-delete-participant" onclick="deleteParticipant(${participant.id})">
@@ -999,9 +999,36 @@ function deleteParticipant(id){
     }
 }// deleteParticipant
 
+// edit participant name and display previous name in prompt
+
 function editParticipant(id){
-    const newName = prompt('Enter new name for participant:');
-    if (newName) {
+
+
+    const participant = participants.find(p => p.id === id);
+    const currentName = participant ? participant.participant : '';
+    const newName = prompt('Enter new name for participant:', currentName);
+    if (newName && newName.trim() !== '') {
+        const meetingId = document.getElementById('meetingIdInput').value;
+        fetch(`${API_BASE_URL}meetings/${meetingId}/participants/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ participant_id: id, participant: newName.trim() })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to update');
+            loadParticipants();
+        })
+        .catch(err => console.error('Update error:', err));
+    }
+}// editParticipant
+
+function editParticipant(id, name){
+
+    const newName = prompt('Enter new name for participant:', name);
+    if (newName && newName.trim() !== '') {
         const meetingId = document.getElementById('meetingIdInput').value;
         fetch(`${API_BASE_URL}meetings/${meetingId}/participants/`, {
             method: 'PUT',
@@ -1018,7 +1045,6 @@ function editParticipant(id){
         .catch(err => console.error('Update error:', err));
     }
 }// editParticipant
-
 
 
 

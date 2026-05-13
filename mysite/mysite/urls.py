@@ -27,3 +27,10 @@ urlpatterns = [
     path('uploadVideo/', TemplateView.as_view(template_name='uploadVideo.html'), name='uploadVideo'),
     
 ]
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns += static(
+    settings.MEDIA_URL,
+    document_root=settings.MEDIA_ROOT
+)

@@ -446,9 +446,7 @@
                 <button class="btn btn-outline-primary btn-toolbar" id="exportTxtBtn">
                     <i class="fas fa-file-alt me-1"></i> Export as TXT
                 </button>
-                <button class="btn btn-outline-success btn-toolbar" id="exportPdfBtn">
-                    <i class="fas fa-file-pdf me-1"></i> Export as PDF
-                </button>
+                
                 <button class="btn btn-outline-secondary btn-toolbar" id="printBtn">
                     <i class="fas fa-print me-1"></i> Print
                 </button>
@@ -461,7 +459,7 @@
                     <i class="fas fa-check-circle me-1"></i> Verified Transcript
                 </div>
                 <div class="badge bg-secondary p-2">
-                    <i class="fas fa-clock me-1"></i> 45 minutes recorded
+                    <i class="fas fa-clock me-1"></i> {{ transcripts.first.created_at|date:"h:i A" }} to {{ transcripts.last.created_at|date:"h:i A" }}
                 </div>
             </div>
         </div>
@@ -529,7 +527,65 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
+
+    //export transcript as text file
+    const exportTxtBtn = document.getElementById('exportTxtBtn');
+    exportTxtBtn.addEventListener('click', () => {
+        const conversationBox = document.getElementById('conversationBox');
+        const messages = conversationBox.querySelectorAll('.chat-message');
+        let transcriptText = '';
+        
+        messages.forEach(msg => {
+            const speaker = msg.querySelector('.speaker-name').textContent.trim();
+            const time = msg.querySelector('.message-time').textContent.trim();
+            const text = msg.querySelector('.message-text').textContent.trim();
+            transcriptText += `${speaker} [${time}]: ${text}\n\n`;
+        });
+        
+        const blob = new Blob([transcriptText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${document.getElementById('meetingTitle').textContent.trim()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        // Show export confirmation modal
+        const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+        exportModal.show();
+    });
+
+    // Print functionality
+    const printBtn = document.getElementById('printBtn');
+    printBtn.addEventListener('click', () => {
+        document.getElementById('conversationBox').style.height = 'auto'; // Expand conversation box for printing
+        window.print();
+    });
+ // copy all transcript from conversation box to clipboard
+    const copyAllBtn = document.getElementById('copyAllBtn');
+    copyAllBtn.addEventListener('click', () => {
+        const conversationBox = document.getElementById('conversationBox');
+        const messages = conversationBox.querySelectorAll('.chat-message');
+        let transcriptText = '';
+        
+        messages.forEach(msg => {
+            const speaker = msg.querySelector('.speaker-name').textContent.trim();
+            const time = msg.querySelector('.message-time').textContent.trim();
+            const text = msg.querySelector('.message-text').textContent.trim();
+            transcriptText += `${speaker} [${time}]: ${text}\n\n`;
+        });
+        
+        navigator.clipboard.writeText(transcriptText).then(() => {
+            alert('Transcript copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy transcript: ', err);
+        });
+    });
 
 
+</script>
 </body>
 </html>

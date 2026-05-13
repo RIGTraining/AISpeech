@@ -269,6 +269,7 @@
                 <!-- Upload Section -->
                 <div class="upload-area">
                     <!-- Video Title -->
+                     {% csrf_token %}
                     <label class="form-label fw-semibold mb-2">
                         <i class="fas fa-heading me-1"></i>Video Title
                     </label>
@@ -409,7 +410,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-<script>
+<!-- <script>
     // ========== VIDEO MANAGEMENT SYSTEM ==========
     
     // Video data storage (simulated database)
@@ -423,24 +424,8 @@
             videos = JSON.parse(stored);
         } else {
             // Sample demo videos
-            videos = [
-                {
-                    id: 1,
-                    title: "Legal Deposition - Smith Case",
-                    summary: "Key witness testimony regarding the corporate fraud allegations.",
-                    createdAt: new Date(2026, 4, 13, 9, 30).toLocaleString(),
-                    fileUrl: null,
-                    transcript: "This is a sample transcript. AI will generate detailed transcription for uploaded videos."
-                },
-                {
-                    id: 2,
-                    title: "Client Consultation - Johnson Family",
-                    summary: "Discussion about estate planning and trust fund setup.",
-                    createdAt: new Date(2026, 4, 12, 14, 15).toLocaleString(),
-                    fileUrl: null,
-                    transcript: "Client expressed concerns about inheritance tax and asset distribution."
-                }
-            ];
+            
+            
             saveVideos();
         }
         renderVideoTable();
@@ -776,6 +761,143 @@
         loadVideos();
         setupFileUpload();
     });
+</script> -->
+<script>
+
+
+ //========== VIDEO UPLOAD HANDLER ========== 
+ //send video title, file and video summary to backend with API, then show preview and simulate upload
+
+    const uploadBtn = document.getElementById('uploadVideoBtn');
+    const fileInput = document.getElementById('videoFileInput');
+
+    // Send video title, summary and file to backend API
+
+
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+fileInput.addEventListener('change', async (e) => {
+    if (e.target.files.length > 0) {
+
+        const file = e.target.files[0];
+
+        const title = document.getElementById('videoTitle').value.trim();
+
+        const summary = document.getElementById('videoSummary').value.trim();
+
+        // Validation
+        if (!title) {
+            alert('Please enter a video title');
+            return;
+        }
+
+        if (!file) {
+            alert('Please enter a video summary');
+            return;
+        }
+
+        // Preview UI
+        const preview = document.getElementById('uploadPreview');
+
+        const previewFileName = document.getElementById('previewFileName');
+
+        previewFileName.innerHTML =
+            `<i class="fas fa-file-video me-2"></i>
+             ${file.name} -
+             ${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+
+        preview.classList.add('active');
+
+        // Create FormData
+        const formData = new FormData();
+
+        formData.append('title', title);
+        formData.append('summary', summary);
+        formData.append('video', file);
+
+        try {
+
+            // Send to Django backend
+            const response = await fetch('/videoscript/upload/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+            const data = await response.json();
+            // Hide preview
+            preview.classList.remove('active');
+            // Reset form
+            fileInput.value = '';
+            if (data.success) {
+                alert(`✓ "${title}" uploaded successfully!`);
+            } else {
+                alert('Upload failed');
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert('Server error occurred');
+
+        }
+
+    }
+
+});
+        //get videos from backend API and render in table
+        function loadVideos() {
+            fetch('/videoscript/upload/')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('videoTableBody');
+                    const videoCount = document.getElementById('videoCount');
+                    videoCount.textContent = data.videos.length;
+                    if (data.videos.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="fas fa-video-slash fa-2x mb-2 d-block"></i>
+                                    No videos uploaded yet.<br>Upload your first video above.
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+                    tbody.innerHTML = '';
+                    data.videos.forEach((video, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td><strong>${video.title}</strong></td>
+                            <td><small>${video.summary.substring(0, 50)}${video.summary.length > 50 ? '...' : ''}</small></td>
+                            <td><small>${video.uploaded_at}</small></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary btn-action edit-video" data-id="${video.id}" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger btn-action delete-video" data-id="${video.id}" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary btn-action settings-video" data-id="${video.id}" title="Settings">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching videos:', error);
+                });
+        }
+
+
+        loadVideos();
 </script>
 </body>
 </html>
