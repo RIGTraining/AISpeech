@@ -850,7 +850,7 @@ fileInput.addEventListener('change', async (e) => {
 });
         //get videos from backend API and render in table
         // update
-        function loadVideos() {
+        function loadVideos() { 
             fetch('/videoscript/upload/')
                 .then(response => response.json())
                 .then(data => {
