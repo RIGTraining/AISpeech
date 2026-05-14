@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gemma 4 Voice Transcription</title>
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+
+        async function startRecording() {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = sendAudio;
+            mediaRecorder.start();
+            document.getElementById('status').textContent = 'Recording...';
+        }
+
+        function stopRecording() {
+            mediaRecorder.stop();
+            document.getElementById('status').textContent = 'Processing...';
+        }
+
+        async function sendAudio() {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recording.webm');
+
+            const response = await fetch('/transcribe/', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            document.getElementById('transcript').textContent = result.transcript || result.error;
+            document.getElementById('status').textContent = 'Done';
+        }
+    </script>
+</head>
+<body>
+    <button onclick="startRecording()">Start Recording</button>
+    <button onclick="stopRecording()">Stop & Transcribe</button>
+    <p id="status"></p>
+    <div id="transcript"></div>
+</body>
+</html>
