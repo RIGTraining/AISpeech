@@ -41,7 +41,11 @@ INSTALLED_APPS = [
     
     'myapp',
     'videoscript',
+<<<<<<< HEAD
     #'gemmapp',
+=======
+    # 'gemmapp',
+>>>>>>> 11f0748ddbeab8f91e7bf9750f7a101a24dde19d
 ]
 
 MIDDLEWARE = [
@@ -58,7 +62,7 @@ ROOT_URLCONF = 'mysite.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backen ds.django.DjangoTemplates',
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
