@@ -25,9 +25,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('myapp.urls')),
     path('videoscript/', include('videoscript.urls')),
+    path('transcribe/', include('gemmapp.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('meeting_participants/', TemplateView.as_view(template_name='addparticipant.html'), name='meeting_participants'),
     path('uploadVideo/', TemplateView.as_view(template_name='uploadVideo.html'), name='uploadVideo'),
+    path('templateview/', TemplateView.as_view(template_name='gemma/note.html'), name='templateview'),
     
 ]
 from django.conf import settings
