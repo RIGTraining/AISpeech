@@ -836,7 +836,7 @@ function initSpeechRecognition() {
                         recognition.start();
                     } catch (e) {}
                 }
-            }, 1000);
+            }, 300);
         } else {
             const status = document.getElementById('recordingStatus');
             status.className = 'badge bg-secondary';

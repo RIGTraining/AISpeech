@@ -41,11 +41,7 @@ INSTALLED_APPS = [
     
     'myapp',
     'videoscript',
-<<<<<<< HEAD
-    #'gemmapp',
-=======
     # 'gemmapp',
->>>>>>> 11f0748ddbeab8f91e7bf9750f7a101a24dde19d
 ]
 
 MIDDLEWARE = [
