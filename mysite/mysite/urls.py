@@ -25,11 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('myapp.urls')),
     path('videoscript/', include('videoscript.urls')),
-<<<<<<< HEAD
-    #path('transcribe/', include('gemmapp.urls')),
-=======
     # path('transcribe/', include('gemmapp.urls')),
->>>>>>> 11f0748ddbeab8f91e7bf9750f7a101a24dde19d
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('meeting_participants/', TemplateView.as_view(template_name='addparticipant.html'), name='meeting_participants'),
     path('uploadVideo/', TemplateView.as_view(template_name='uploadVideo.html'), name='uploadVideo'),
