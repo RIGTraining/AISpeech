@@ -836,7 +836,7 @@ function initSpeechRecognition() {
                         recognition.start();
                     } catch (e) {}
                 }
-            }, 300);
+            }, 150);  // Retry after 100ms
         } else {
             const status = document.getElementById('recordingStatus');
             status.className = 'badge bg-secondary';
@@ -871,7 +871,7 @@ function startRecording() {
     } catch (e) {
         console.error(e);
         initSpeechRecognition();
-        setTimeout(() => recognition.start(), 500);
+        setTimeout(() => recognition.start(), 150);
     }
 }
 
